@@ -1,0 +1,32 @@
+minimum_cumulusci_version: '3.0.0'
+project:
+    name: MetaPush
+    package:
+        name:  MetaPush
+        api_version: '46.0'
+    source_format: sfdx
+
+tasks:
+    robot:
+        options:
+            suites: robot/MetaPush/tests
+            options:
+                outputdir: robot/MetaPush/results
+
+    robot_testdoc:
+        options:
+            path: robot/MetaPush/tests
+            output: robot/MetaPush/doc/MetaPush_tests.html
+
+flows:
+    config_qa:
+        1.1:
+            task: deploy_qa_config
+
+services:
+    metapush_postgres:
+        description: Connection info for the Heroku Postgresql database for a metapush instance
+        attributes:
+            db_url:
+                description: The DATABASE_URL from the Heroku app
+                required: True
