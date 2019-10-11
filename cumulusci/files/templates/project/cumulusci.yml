@@ -1,0 +1,60 @@
+minimum_cumulusci_version: '{{ cci_version }}'
+project:
+    name: {{ project_name }}
+    package:
+        name:  {{ package_name }}
+        {% if package_namespace %}
+        namespace: {{ package_namespace }}
+        {% endif %}
+        api_version: '{{ api_version }}'
+    {% if dependencies %}
+    dependencies:
+    {% for dep in dependencies %}
+      {% if dep.type == 'github' %}
+        - github: '{{ dep.url }}'
+      {% elif dep.type == 'managed' %}
+        - namespace: {{ dep.namespace }}
+          version: {{ dep.version }}
+      {% elif dep.type == 'unmanaged' %}
+        - zip_url: '{{ dep.url }}'
+          {% if dep.subfolder %}
+          subfolder: '{{ dep.subfolder }}'
+          {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% endif %}
+    {% if git %}
+    git:{% endif %}
+      {% if git.default_branch %} 
+        default_branch: '{{ git.default_branch }}'{% endif %}
+      {% if git.prefix_feature %} 
+        prefix_feature: '{{ git.prefix_feature }}'{% endif %}
+      {% if git.prefix_beta %} 
+        prefix_beta: '{{ git.prefix_beta }}'{% endif %}
+      {% if git.prefix_release %} 
+        prefix_release: '{{ git.prefix_release }}'{% endif %}
+    {% if test_name_match %}
+    test:
+        name_match: '{{ test_name_match }}'
+    {% endif %}
+    {% if source_format != 'mdapi' %}
+    source_format: {{ source_format }}
+    {% endif %}
+
+tasks:
+    robot:
+        options:
+            suites: robot/{{project_name}}/tests
+            options:
+                outputdir: robot/{{project_name}}/results
+
+    robot_testdoc:
+        options:
+            path: robot/{{project_name}}/tests
+            output: robot/{{project_name}}/doc/{{project_name}}_tests.html
+
+flows:
+    config_qa:
+        1.1:
+            task: deploy_qa_config
+
