@@ -1,4 +1,5 @@
 from cumulusci.tasks.salesforce import BaseSalesforceApiTask
+# from cumulusci.tasks.salesforce import BaseSalesforceToolingApiTask
 
 class SyncPushErrors(BaseSalesforceApiTask):
     task_options = {
@@ -6,10 +7,8 @@ class SyncPushErrors(BaseSalesforceApiTask):
             "description": "Offset to use in SOQL query of PackagePushError",
        }
     }
+
     def _init_options(self, kwargs):
-        # creating package id initialization not sure its 
-        # necessary at this point
-        self.package_id = None
         super(SyncPushErrors, self)._init_options(kwargs)
         # Set the namespace option to the value from cumulusci.yml if not already set
         # if "namespace" not in self.options:
@@ -17,10 +16,30 @@ class SyncPushErrors(BaseSalesforceApiTask):
 
     def _run_task(self):
         # Query PackagePushErrors
-        # not correct query but leaving for now
-        # self.api.query("SELECT * FROM packagepusherror;")
+        ### proper query but wont work need to ask 
+        ### 'Select ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType from PackagePushError'
+        print(self._run_SOQL_query('Select AccountId from USER LIMIT 10'))
         # Get heroku postgres service
+
         # service = self.project_config.keychain.get_service("metapush_postgres")
+
         # Initialize a postgres connection
+
         # Upsert results to postgres
-        print("hello")
+        print("hello world!")
+
+    # what the query should be if it would accept 
+    def _run_SOQL_query(self, query):
+        res = self.sf.query(query)
+        for contact in res['records']:
+            self.logger.info('{AccountId}'.format(**contact))
+
+    # def _run_SOQL_query(self, query):
+    # res = self.sf.query(query)
+    # for contact in res['records']:
+    #     self.logger.info('ErrorDetails: {ErrorDetails} \
+    #                       ErrorMessage: {ErrorMessage}  \
+    #                       ErrorSeverity: {ErrorSeverity} \
+    #                       ErrorTitle: {ErrorTitle} \
+    #                       ErrorType: {ErrorType} \
+    #                       PackagePushJobId: {PackagePushJobId}'.format(**contact))

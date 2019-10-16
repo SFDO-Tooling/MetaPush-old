@@ -20,6 +20,9 @@ tasks:
     meta_push:
         description: This task is designed to query the PackageErrorMessages and upsert them to our Heroku postgres database
         class_path: tasks.push_api.SyncPushErrors
+    list_contacts:
+        description: Prints out 10 Contacts from the target org using the Enterprise API
+        class_path: tasks.salesforce.ListContacts
 flows:
     config_qa:
         1.1:
