@@ -13,19 +13,45 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # Set the namespace option to the value from cumulusci.yml if not already set
         # if "namespace" not in self.options:
         self.options["namespace"] = self.project_config.project__package__namespace
-        self.job_query = "SELECT ID, SubscriberOrganizationKey, (SELECT ErrorDetails, ErrorMessage, ErrorSeverity, ErrorTitle, ErrorType FROM PackagePushErrors) FROM PackagePushJob"
+        self.gack = None
+        self.job_query = "SELECT (SELECT ErrorDetails, ErrorMessage, ErrorSeverity, ErrorTitle, \
+                          ErrorType FROM PackagePushErrors) FROM PackagePushJob"
 
     def _run_task(self):
         # Query PackagePushErrors
-        ### proper query but wont work need to ask 
-        ### 'Select ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType from PackagePushError'
-        print(self._run_SOQL_query('Select AccountId from USER LIMIT 10'))
-
-        # Get errors
+        count = 0
         formatted_query = self.job_query.format(**self.options)
         self.logger.debug("Running query for job errors: " + formatted_query)
         result = self.sf.query(formatted_query)
         job_records = result["records"]
+        self.logger.debug(
+            "Query is complete: {done}. Found {n} results.".format(
+                done=result["done"], n=result["totalSize"]
+            )
+        )
+        if not result["totalSize"]:
+            self.logger.info("No errors found.")
+            return
+        # Sort by error title
+        for records in job_records[:]:
+            for message, record in records.items():
+                if record is None:
+                    continue
+                # omitting attributes key or any others with non error pertaining information
+                if message.lower() == 'packagepusherrors':
+                    count += 1
+                    for index,(k,v) in enumerate(record.items()):
+                        # omitting non error related tuples
+                        if k.lower() == 'records':
+                            row = {}
+                            for key,(error_key,error_value) in enumerate(v[0].items()):
+                                if not error_key.lower() == 'attributes':
+                                    row[error_key] = error_value
+                                else: 
+                                    continue
+                            self.logger.info(row)
+                        else:
+                            continue
         # Get heroku postgres service
 
         # service = self.project_config.keychain.get_service("metapush_postgres")
@@ -33,21 +59,9 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # Initialize a postgres connection
 
         # Upsert results to postgres
-        print("hello world!")
 
     # what the query should be if it would accept 
     def _run_SOQL_query(self, query):
         res = self.sf.query(query)
         for contact in res['records']:
             self.logger.info('{AccountId}'.format(**contact))
-
-
-    # def _run_SOQL_query(self, query):
-    # res = self.sf.query(query)
-    # for contact in res['records']:
-    #     self.logger.info('ErrorDetails: {ErrorDetails} \
-    #                       ErrorMessage: {ErrorMessage}  \
-    #                       ErrorSeverity: {ErrorSeverity} \
-    #                       ErrorTitle: {ErrorTitle} \
-    #                       ErrorType: {ErrorType} \
-    #                       PackagePushJobId: {PackagePushJobId}'.format(**contact))
