@@ -14,7 +14,7 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # if "namespace" not in self.options:
         self.options["namespace"] = self.project_config.project__package__namespace
         self.job_query = "SELECT (SELECT ErrorDetails, ErrorMessage, ErrorSeverity, ErrorTitle, \
-                          ErrorType FROM PackagePushErrors) FROM PackagePushJob LIMIT 10 OFFSET 10 "
+                          ErrorType FROM PackagePushErrors) FROM PackagePushJob " #LIMIT  50000 OFFSET 10 "
 
     def _run_task(self):
         # Query PackagePushErrors
@@ -33,17 +33,19 @@ class SyncPushErrors(BaseSalesforceApiTask):
             return
         # Sort by error title
         for records in job_records[:]:
+            count += 1
             for message, record in records.items():
                 if record is None:
+                    # count += 1
                     continue
                 # omitting attributes key or any others with non error pertaining information
                 if message.lower() == 'packagepusherrors':
-                    count += 1
-                    for index,(k,v) in enumerate(record.items()):
+                    # count += 1
+                    for _ ,(k,v) in enumerate(record.items()):
                         # omitting non error related tuples
                         if k.lower() == 'records':
                             row = {}
-                            for key,(error_key,error_value) in enumerate(v[0].items()):
+                            for _ ,(error_key,error_value) in enumerate(v[0].items()):
                                 if not error_key.lower() == 'attributes':
                                     row[error_key] = error_value
                                 else: 
@@ -51,6 +53,9 @@ class SyncPushErrors(BaseSalesforceApiTask):
                             self.logger.info(row)
                         else:
                             continue
+                else:
+                    continue
+
         # Get heroku postgres service
 
         # service = self.project_config.keychain.get_service("metapush_postgres")
