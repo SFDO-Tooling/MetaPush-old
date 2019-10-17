@@ -13,9 +13,8 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # Set the namespace option to the value from cumulusci.yml if not already set
         # if "namespace" not in self.options:
         self.options["namespace"] = self.project_config.project__package__namespace
-        self.gack = None
         self.job_query = "SELECT (SELECT ErrorDetails, ErrorMessage, ErrorSeverity, ErrorTitle, \
-                          ErrorType FROM PackagePushErrors) FROM PackagePushJob"
+                          ErrorType FROM PackagePushErrors) FROM PackagePushJob LIMIT 10 OFFSET 10 "
 
     def _run_task(self):
         # Query PackagePushErrors
