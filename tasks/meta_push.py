@@ -33,7 +33,6 @@ class SyncPushErrors(BaseSalesforceApiTask):
             return
 
         # Get heroku postgres service
-
         service = self.project_config.keychain.get_service("metapush_postgres")
         DATABASE_URL = service.db_url
         # Initialize a postgres connection
