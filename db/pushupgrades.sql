@@ -1,6 +1,7 @@
 CREATE OR REPLACE FUNCTION get_pushupgrades(varchar) 
    RETURNS TABLE (
       schemaName text,
+      last_run timestamp,
       request_actual_time timestamp,
       request_status varchar,
       request_start_time timestamp,
@@ -47,7 +48,8 @@ BEGIN
   EXECUTE format('
           CREATE OR REPLACE VIEW pushupgrades AS
             SELECT
-              ''%s'',
+              ''%s'' as schemaName,
+              TIMESTAMP ''%s'' AS last_run,
               %s.packagepushrequest.systemmodstamp as request_time,
               %s.packagepushrequest.status as request_status,
               %s.packagepushrequest.scheduledstarttime as request_start_time,
@@ -110,7 +112,7 @@ BEGIN
             ON %s.packagepushjob.subscriberorganizationkey = %s.packagesubscriber.orgkey
             FULL OUTER JOIN %s.metadatapackage
             ON %s.metadatapackageversion.metadatapackageid = %s.metadatapackage.sfid            
-            ', $1,$1,$1,$1,$1,$1,$1,$1,$1,$1, $1,$1,$1,$1,$1,$1,$1,$1,$1,$1,'''.''',$1,'''.''',$1,$1,
+            ', $1,CURRENT_TIMESTAMP,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1, $1,$1,$1,$1,$1,$1,$1,$1,$1,$1,'''.''',$1,'''.''',$1,$1,
                '''.''',$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,
                $1,$1,$1,$1,$1,$1,$1, $1,$1,$1,$1,$1, $1,$1,$1,$1,$1
              );
