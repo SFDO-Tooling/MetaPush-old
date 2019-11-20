@@ -42,7 +42,6 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # cur.execute("SELECT MAX() FROM test;")
 
         # Make the changes to the database persistent
-        conn.commit()
 
         formatted_query = self.job_query.format(**self.options)
         self.logger.debug("Running query for job errors: " + formatted_query)
@@ -68,6 +67,13 @@ class SyncPushErrors(BaseSalesforceApiTask):
                     row[k] = v
             print(row)
             print()
+            cur.execute(
+                "INSERT INTO pushupgrades (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)",
+                (100, "abc'def"),
+            )
+
+            conn.commit()
+
         # Close communication with the database
         cur.close()
         conn.close()
