@@ -38,11 +38,6 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # the correct conversion (no more SQL injections!)
         # cur.execute("SELECT * FROM pushupgrades;")
 
-        # Query the database and obtain data as Python objects
-        # cur.execute("SELECT MAX() FROM test;")
-
-        # Make the changes to the database persistent
-
         formatted_query = self.job_query.format(**self.options)
         self.logger.debug("Running query for job errors: " + formatted_query)
         result = self.sf.query(formatted_query)
@@ -56,46 +51,35 @@ class SyncPushErrors(BaseSalesforceApiTask):
             self.logger.info("No errors found.")
             return
 
-        # Sort by error title
+        offset = 131
+        id = 1 + offset
         for records in job_records[:]:
-            # print(records)
             row = {}
             for _, (k, v) in enumerate(records.items()):
-                # skipping unwanted attribute key values storing all others
-                # to be upserted
+                # skipping unwanted attribute key values storing all
+                # others to be upserted
                 if k.lower() != "attributes":
                     row[k] = v
             print(row)
             print()
             cur.execute(
-                "INSERT INTO pushupgrades (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)",
-                (100, "abc'def"),
+                "INSERT INTO abacus.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)",
+                (
+                    row["SystemModstamp"],
+                    row["ErrorType"],
+                    row["ErrorTitle"],
+                    row["ErrorSeverity"],
+                    row["ErrorMessage"],
+                    row["ErrorDetails"],
+                    row["PackagePushJobId"],
+                    row["Id"],
+                    id,
+                    "NULL",
+                    "NULL",
+                ),
             )
-
+            id += 1
             conn.commit()
-
         # Close communication with the database
         cur.close()
         conn.close()
-
-
-# except IOError:
-#     print("An error occured trying to read the file.")
-
-# except ValueError:
-#     print("Non-numeric data found in the file.")
-
-# except ImportError:
-#     print("NO module found")
-
-# except EOFError:
-#     print("Why did you do an EOF on me?")
-
-# except KeyboardInterrupt:
-#     print("You cancelled the operation.")
-
-# except:
-#     print("An error occured.")
-#     # Initialize a postgres connection
-
-#     # Upsert results to postgres
