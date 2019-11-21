@@ -28,11 +28,12 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # Open a cursor to perform database operations
         cur = conn.cursor()
         # Execute a command that gets the last time this report was run
-        cur.execute("SELECT MAX(push_error_time) from pushupgrades")
+        cur.execute("SELECT MAX(last_run) from pushupgrades;")
         last_run = cur.fetchone()[0]
-        print(last_run)
-
-        self.job_query = "SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM PackagePushError LIMIT 2"  # LIMIT  50000 OFFSET 10 "
+        # print(last_run.replace(" ", "T"))
+        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE sysmodstamp > {last_run}"
+        # 2019-11-06T05:06:33.000+0000"
+        # print(self.job_query)
 
         # Pass data to fill a query placeholders and let Psycopg perform
         # the correct conversion (no more SQL injections!)
@@ -51,19 +52,20 @@ class SyncPushErrors(BaseSalesforceApiTask):
             self.logger.info("No errors found.")
             return
 
-        offset = 131
-        id = 1 + offset
-        for records in job_records[:]:
+        offset = cur.execute("SELECT COUNT(*) FROM pushupgrades;")
+        offset = cur.fetchone()[0]
+        print("OFFSET: ", offset)
+        id = 0 + offset + 1
+        for records in job_records:
             row = {}
             for _, (k, v) in enumerate(records.items()):
-                # skipping unwanted attribute key values storing all
-                # others to be upserted
+                # skipping unwanted attribute key values storing all others to be upserted
                 if k.lower() != "attributes":
                     row[k] = v
-            print(row)
-            print()
+            self.logger.info(row)
+            self.logger.info("")
             cur.execute(
-                "INSERT INTO abacus.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)",
+                "INSERT INTO gem.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) ON CONFLICT (id) DO NOTHING;",  # ON CONFLICT DO NOTHING",
                 (
                     row["SystemModstamp"],
                     row["ErrorType"],

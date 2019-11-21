@@ -112,7 +112,7 @@ BEGIN
             ON %s.packagepushjob.subscriberorganizationkey = %s.packagesubscriber.orgkey
             FULL OUTER JOIN %s.metadatapackage
             ON %s.metadatapackageversion.metadatapackageid = %s.metadatapackage.sfid            
-            ', $1,CURRENT_TIMESTAMP,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1, $1,$1,$1,$1,$1,$1,$1,$1,$1,$1,'''.''',$1,'''.''',$1,$1,
+            ', $1,NOW(),$1,$1,$1,$1,$1,$1,$1,$1,$1,$1, $1,$1,$1,$1,$1,$1,$1,$1,$1,$1,'''.''',$1,'''.''',$1,$1,
                '''.''',$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,$1,
                $1,$1,$1,$1,$1,$1,$1, $1,$1,$1,$1,$1, $1,$1,$1,$1,$1
              );
