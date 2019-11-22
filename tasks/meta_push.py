@@ -31,7 +31,7 @@ class SyncPushErrors(BaseSalesforceApiTask):
         cur.execute("SELECT MAX(last_run) from pushupgrades;")
         last_run = cur.fetchone()[0]
         # print(last_run.replace(" ", "T"))
-        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE sysmodstamp > {last_run}"
+        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError LIMIT 2"  # WHERE sysmodstamp > {last_run}"
         # 2019-11-06T05:06:33.000+0000"
         # print(self.job_query)
 
@@ -64,22 +64,22 @@ class SyncPushErrors(BaseSalesforceApiTask):
                     row[k] = v
             self.logger.info(row)
             self.logger.info("")
-            cur.execute(
-                "INSERT INTO gem.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) ON CONFLICT (id) DO NOTHING;",  # ON CONFLICT DO NOTHING",
-                (
-                    row["SystemModstamp"],
-                    row["ErrorType"],
-                    row["ErrorTitle"],
-                    row["ErrorSeverity"],
-                    row["ErrorMessage"],
-                    row["ErrorDetails"],
-                    row["PackagePushJobId"],
-                    row["Id"],
-                    id,
-                    "NULL",
-                    "NULL",
-                ),
-            )
+            # cur.execute(
+            #     "INSERT INTO gem.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) ON CONFLICT (id) DO NOTHING;",  # ON CONFLICT DO NOTHING",
+            #     (
+            #         row["SystemModstamp"],
+            #         row["ErrorType"],
+            #         row["ErrorTitle"],
+            #         row["ErrorSeverity"],
+            #         row["ErrorMessage"],
+            #         row["ErrorDetails"],
+            #         row["PackagePushJobId"],
+            #         row["Id"],
+            #         id,
+            #         "NULL",
+            #         "NULL",
+            #     ),
+            # )
             id += 1
             conn.commit()
         # Close communication with the database
