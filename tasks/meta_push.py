@@ -29,9 +29,8 @@ class SyncPushErrors(BaseSalesforceApiTask):
         cur = conn.cursor()
         # Execute a command that gets the last time this report was run
         cur.execute("SELECT MAX(last_run) from pushupgrades;")
-        last_run = cur.fetchone()[0]
-        # print(last_run.replace(" ", "T"))
-        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError LIMIT 2"  # WHERE sysmodstamp > {last_run}"
+        last_run = cur.fetchone()[0].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
+        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE SystemModstamp > {last_run}"
         # 2019-11-06T05:06:33.000+0000"
         # print(self.job_query)
 
