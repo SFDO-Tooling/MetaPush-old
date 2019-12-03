@@ -1,5 +1,6 @@
 import os
 import psycopg2
+from psycopg2 import sql
 from cumulusci.tasks.salesforce import BaseSalesforceApiTask
 
 # from cumulusci.tasks.salesforce import BaseSalesforceToolingApiTask
@@ -30,9 +31,7 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # Execute a command that gets the last time this report was run
         cur.execute("SELECT MAX(last_run) from pushupgrades;")
         last_run = cur.fetchone()[0].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
-        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE SystemModstamp > {last_run}"
-        # 2019-11-06T05:06:33.000+0000"
-        # print(self.job_query)
+        self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE SystemModstamp > 2019-11-01T07:59:43.036+0000 LIMIT 2"  # {last_run}"
 
         # Pass data to fill a query placeholders and let Psycopg perform
         # the correct conversion (no more SQL injections!)
@@ -63,24 +62,34 @@ class SyncPushErrors(BaseSalesforceApiTask):
                     row[k] = v
             self.logger.info(row)
             self.logger.info("")
-            # cur.execute(
-            #     "INSERT INTO gem.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) ON CONFLICT (id) DO NOTHING;",  # ON CONFLICT DO NOTHING",
-            #     (
-            #         row["SystemModstamp"],
-            #         row["ErrorType"],
-            #         row["ErrorTitle"],
-            #         row["ErrorSeverity"],
-            #         row["ErrorMessage"],
-            #         row["ErrorDetails"],
-            #         row["PackagePushJobId"],
-            #         row["Id"],
-            #         id,
-            #         "NULL",
-            #         "NULL",
-            #     ),
-            # )
+            cur.execute(
+                sql.SQL(
+                    "INSERT INTO {}.packagepusherror (systemmodstamp,errortype,errortitle,errorseverity,errormessage,errordetails,packagepushjobid,sfid,id,_hc_lastop,_hc_err) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s) ON CONFLICT DO NOTHING;"
+                ).format(sql.Identifier(self.options["schema"])),
+                [
+                    row["SystemModstamp"],
+                    row["ErrorType"],
+                    row["ErrorTitle"],
+                    row["ErrorSeverity"],
+                    row["ErrorMessage"],
+                    row["ErrorDetails"],
+                    row["PackagePushJobId"],
+                    row["Id"],
+                    id,
+                    "NULL",
+                    "NULL",
+                ],
+            )
             id += 1
             conn.commit()
+        cur.execute(
+            sql.SQL("SELECT get_pushupgrades('{}')").format(
+                sql.Identifier(self.options["schema"])
+            )
+        )
+        # shows results of built in function see pushupgrades.sql
+        push_upgrades = cur.fetchall()[0]
+        # print(push_upgrades[0])
         # Close communication with the database
         cur.close()
         conn.close()

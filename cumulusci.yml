@@ -20,6 +20,8 @@ tasks:
     meta_push:
         description: This task is designed to query the PackageErrorMessages and upsert them to our Heroku postgres database
         class_path: tasks.meta_push.SyncPushErrors
+        options:
+            schema: gem
 
 flows:
     config_qa:
