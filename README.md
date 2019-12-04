@@ -16,4 +16,4 @@ To run MetaPush you must complete the following steps:
 4. To configure your system please visit the following document to get the db_url for the [Heroku Postgres server](https://salesforce.quip.com/iMfNAdOUR4M5). For access to the quip document please contact Salesforce.org's Release Engineering department. 
 5. Run `cci service connect metapush_postgres` from your project's root directory, use the DB_URL from step 4 when prompted.
 6. In your cumulusci.yml file under tasks -> meta_push -> options -> schema set your value to your appropriate org schema name (e.g. abacus).
-7. Run `cci task run meta_push --org <name of org>` to push your package push errors to the postgresql database.
+7. Run `cci task run metapush_package_errors --org <name of org>` to push your package push errors to the postgresql database.

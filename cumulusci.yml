@@ -17,7 +17,7 @@ tasks:
         options:
             path: robot/MetaPush/tests
             output: robot/MetaPush/doc/MetaPush_tests.html
-    meta_push:
+    metapush_package_errors:
         description: This task is designed to query the PackageErrorMessages and upsert them to our Heroku postgres database
         class_path: tasks.meta_push.SyncPushErrors
         options:

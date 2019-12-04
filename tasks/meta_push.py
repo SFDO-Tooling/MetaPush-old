@@ -7,6 +7,13 @@ from cumulusci.tasks.salesforce import BaseSalesforceApiTask
 
 
 class SyncPushErrors(BaseSalesforceApiTask):
+    """
+    This class was created to support the collection of package push errors to a postgresql
+    heroku database. To achieve this a task named metapush_package_errors was created which collects the
+    push package errors from its connected org and updates them to a view created in a remote
+    database to track each orgsrespective package's errors.
+    """
+
     task_options = {
         "offset": {"description": "Offset to use in SOQL query of PackagePushError"}
     }
@@ -21,8 +28,7 @@ class SyncPushErrors(BaseSalesforceApiTask):
         # Get heroku postgres service
         service = self.project_config.keychain.get_service("metapush_postgres")
         DATABASE_URL = service.db_url
-        # Initialize a postgres connection
-        # try:
+
         conn = psycopg2.connect(DATABASE_URL, sslmode="require")
         # Query PackagePushErrors
 
@@ -32,10 +38,7 @@ class SyncPushErrors(BaseSalesforceApiTask):
         cur.execute("SELECT MAX(last_run) from pushupgrades;")
         last_run = cur.fetchone()[0].strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
         self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE SystemModstamp > 2019-11-01T07:59:43.036+0000 LIMIT 2"  # {last_run}"
-
-        # Pass data to fill a query placeholders and let Psycopg perform
-        # the correct conversion (no more SQL injections!)
-        # cur.execute("SELECT * FROM pushupgrades;")
+        # self.job_query = f"SELECT Id, PackagePushJobId, ErrorMessage, ErrorDetails, ErrorTitle, ErrorSeverity, ErrorType, SystemModstamp FROM packagePushError WHERE SystemModstamp > {last_run}"
 
         formatted_query = self.job_query.format(**self.options)
         self.logger.debug("Running query for job errors: " + formatted_query)
@@ -50,9 +53,14 @@ class SyncPushErrors(BaseSalesforceApiTask):
             self.logger.info("No errors found.")
             return
 
-        offset = cur.execute("SELECT COUNT(*) FROM pushupgrades;")
+        offset = cur.execute(
+            sql.SQL("SELECT COUNT(*) FROM {}.packagepusherror;").format(
+                sql.Identifier(self.options["schema"])
+            )
+        )
+
         offset = cur.fetchone()[0]
-        print("OFFSET: ", offset)
+        self.logger.info("OFFSET: ", offset)
         id = 0 + offset + 1
         for records in job_records:
             row = {}
@@ -89,7 +97,7 @@ class SyncPushErrors(BaseSalesforceApiTask):
         )
         # shows results of built in function see pushupgrades.sql
         push_upgrades = cur.fetchall()[0]
-        # print(push_upgrades[0])
+        self.logger.info(push_upgrades)
         # Close communication with the database
         cur.close()
         conn.close()
