@@ -27,6 +27,7 @@ RUN yarn install
 COPY . /app
 ENV PYTHONUNBUFFERED 1
 # Don't write .pyc files
+ENV DB_ENCRYPTION_KEY asdfasd
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV REDIS_URL "redis://redis:6379"
 ENV DJANGO_SETTINGS_MODULE config.settings.local
