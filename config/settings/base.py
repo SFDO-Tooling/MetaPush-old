@@ -82,7 +82,7 @@ PROJECT_ROOT = Path(__file__).absolute().parent.parent.parent
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("DJANGO_SECRET_KEY")
+SECRET_KEY = "-b-9mzv9zd8aaahfaodaahdrldwglvn3le7a1ka4q4e0hbmknk"
 HASHID_FIELD_SALT = env("DJANGO_HASHID_SALT")
 DB_ENCRYPTION_KEY = env("DB_ENCRYPTION_KEY")
 
@@ -96,6 +96,8 @@ ALLOWED_HOSTS = [
     "127.0.0.1:8000",
     "127.0.0.1:8080",
     "localhost",
+    "0.0.0.0",
+    "0.0.0.0:8000",
     "localhost:8000",
     "localhost:8080",
 ] + [
@@ -297,9 +299,7 @@ SOCIALACCOUNT_PROVIDERS = {
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_EMAIL_VERIFICATION = "none"
-SOCIALACCOUNT_ADAPTER = (
-    "MetaPush.multisalesforce.adapter.CustomSocialAccountAdapter"
-)
+SOCIALACCOUNT_ADAPTER = "MetaPush.multisalesforce.adapter.CustomSocialAccountAdapter"
 
 JS_REVERSE_JS_VAR_NAME = "api_urls"
 JS_REVERSE_EXCLUDE_NAMESPACES = ["admin", "admin_rest"]

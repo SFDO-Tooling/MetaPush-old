@@ -27,15 +27,15 @@ RUN yarn install
 COPY . /app
 ENV PYTHONUNBUFFERED 1
 # Don't write .pyc files
-ENV DB_ENCRYPTION_KEY asdfasd
+ENV DB_ENCRYPTION_KEY 'VSEi2ssPWWPyxghgSanzJnBfWnAkP5fK05wwoshCOKg='
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV REDIS_URL "redis://redis:6379"
-ENV DJANGO_SETTINGS_MODULE config.settings.local
-ENV DATABASE_URL postgres://metapush@postgres:5432/metapush
+ENV DJANGO_SETTINGS_MODULE config.settings.base
+ENV DATABASE_URL postgres://postgres@postgres:5432/MetaPush
 ENV DJANGO_HASHID_SALT 'sample hashid salt'
 ENV DJANGO_SECRET_KEY 'sample secret key'
 # Avoid building prod assets in development
 RUN if [ "${BUILD_ENV}" = "production" ] ; then yarn prod ; else mkdir -p dist/prod ; fi
 RUN python /app/manage.py collectstatic --noinput
 # adding for Heroku
-CMD ["/app/utility/start_server.sh"]
+# CMD ["/app/utility/start_server.sh"]
